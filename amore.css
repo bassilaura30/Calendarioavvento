@@ -1,0 +1,601 @@
+
+body {
+
+  background-image:url(Sfondo.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+
+}
+
+h1 {
+
+  text-align: center;
+  color: rgb(128, 0, 0);
+  font-family:Palatino;
+  font-size: 400%;
+  margin-left: 29%;
+  margin-top: 5%;
+  margin-bottom: 2%;
+
+
+}
+
+p#messaggio1 {
+  
+  font-family:Palatino;
+  color:black;
+  text-align:left;
+  font-size: 130%;
+  margin-left:40%;
+  margin-right: 2%;;
+  margin-bottom: 2%;
+  display: inline-block;
+
+}
+
+div#content {
+
+  font-family: Palatino;
+  color:black;
+  text-align:left;
+  font-size: 100%;
+  margin-left: 46%;
+  margin-right: 2%;
+  white-space: pre-line;
+
+}
+
+img {
+
+  border: 3px solid;
+  border-color:blanchedalmond;
+  border-radius: 18px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+a {
+
+  position: absolute;
+  bottom: 15; 
+  right: 15;
+  font-family: Palatino;
+  color: brown;
+  font-size: 150%;
+
+}
+
+button {
+
+  background-color: wheat;
+  color:black; /* Colore del testo */
+  padding: 8px 16px; /* Spaziatura interna */
+  text-align: center;
+  display: inline-block;
+  font-size: 10px;
+  margin: 4px 2px;
+  border: none; /* Rimuove il bordo di default */
+  border-radius: 8px;
+
+}
+
+#snowCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* permette di cliccare gli altri elementi */
+  z-index: 2000; /* sopra tutto */
+}
+
+#lightsCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 500; /* sotto alla neve, sopra allo sfondo */
+}
+
+/* CONTENITORE */
+#doors {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1500;
+  display: flex;
+  pointer-events: none;
+}
+
+/* SINGOLE ANTE */
+.door {
+  width: 50vw;
+  height: 100vh;
+  background: linear-gradient(90deg, #3d2418, #2a160f);
+  position: relative;
+  transition: transform 2s ease-in-out;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+}
+
+/* EFFETTO LEGNO */
+.door::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 0,
+    rgba(255,255,255,0.05) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  pointer-events: none;
+}
+
+/* MANIGLIE */
+.handle {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 80px;
+  background: gold;
+  border-radius: 10px;
+  transform: translateY(-50%);
+}
+
+/* ------------------------
+   PORTA SINISTRA
+   ------------------------ */
+#leftDoor {
+  transform-origin: left center;     /* CARDINE A SINISTRA (fisso ai lati!!) */
+}
+#leftDoor .handle {
+  right: 30px;
+}
+/* La porta si apre verso sinistra = va indietro */
+.open-left {
+  transform: rotateY(90deg);
+}
+
+/* ------------------------
+   PORTA DESTRA
+   ------------------------ */
+#rightDoor {
+  transform-origin: right center;    /* CARDINE A DESTRA */
+}
+#rightDoor .handle {
+  left: 30px;
+}
+/* La porta si apre verso destra */
+.open-right {
+  transform: rotateY(-90deg);
+}
+
+
+
+
+.memory-game {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 150px);
+  grid-gap: 10px;
+  justify-content: center;
+}
+
+.memory-card {
+  width: 120px;
+  height: 120px;
+  perspective: 800px;
+  position: relative;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+
+.memory-card > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Retro */
+.memory-card .back {
+  background: #b5651d;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
+  transform: rotateY(0deg);
+}
+
+/* Fronte */
+.memory-card .front {
+  background-size: cover;
+  background-position: center;
+  transform: rotateY(180deg);
+}
+
+/* Flip: mostra il fronte */
+.memory-card.flip {
+  transform: rotateY(180deg);
+}
+
+/* Carta già matchata */
+.memory-card.matched {
+  box-shadow: 0 0 12px rgba(34,139,34,0.6);
+  pointer-events: none;
+}
+
+/* PUZZLE */
+
+.puzzle-wrapper {
+  position: relative;
+  margin: 30px auto;
+  width: auto;
+  max-width: 100%;
+  background: #deb887;
+  padding: 12px;
+  box-shadow: 0 4px 10px rgba(176,196,222);
+  border-radius: 8px;
+}
+
+/* griglia dei target */
+.puzzle-solved-grid {
+  display: grid;
+  background: #deb887;
+  padding: 6px;
+  gap: 0;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* celle target */
+.puzzle-cell {
+  width: 100px;
+  height: 100px;
+  border: 1px dashed #bbb;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* pezzi: non assoluti, così si dispongono nella start-grid come desideri */
+.puzzle-piece {
+  width: 100px;
+  height: 100px;
+  border: 1px solid #aaa;
+  cursor: grab;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  display: inline-block;
+  box-sizing: border-box;
+  margin: 0;
+  user-select: none;
+}
+
+/* griglia di partenza */
+.puzzle-start-grid {
+  /* le regole principali vengono impostate dinamicamente dal JS, ma qui alcune di fallback */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* GIOCO DEL CERCARE LE PAROLE */
+
+.wordsearch-table {
+  border-collapse: collapse;
+  margin: 20px auto;
+}
+
+.wordsearch-table td {
+  width: 38px;
+  height: 38px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  border: 1px solid #aaa;
+  cursor: pointer;
+  background: white;
+  transition: background 0.2s;
+}
+
+.selected-correct {
+  background: #6bd86b !important; /* verde */
+  color: white;
+}
+
+.selected-wrong {
+  background: #e05c5c !important; /* rosso */
+  color: white;
+}
+
+.wordsearch-message {
+  margin-top: 15px;
+  font-size: 22px;
+  color: #008000;
+  font-weight: bold;
+}
+.wordsearch-grid div {
+  transition: background 0.2s;
+  border-radius: 6px;
+}
+
+.wordsearch-word {
+  transition: background 0.3s;
+}
+
+/* SLOT MACHINE */
+.slot-machine {
+  width: 260px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.slots {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.reel {
+  width: 55px;
+  height: 55px;
+  margin: 0 5px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 35px;
+  border: 2px solid #ccc;
+}
+
+.lever {
+  width: 30px;
+  height: 100px;
+  background: #c0392b;
+  border-radius: 10px;
+  margin: 15px auto;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.lever::after {
+  content: "";
+  width: 35px;
+  height: 35px;
+  background: #e74c3c;
+  border-radius: 50%;
+  position: absolute;
+  top: -15px;
+  left: -2px;
+}
+
+/* Animazione della leva mentre viene tirata */
+.lever.active {
+  transform: translateY(20px) rotate(10deg);
+}
+
+.slot-score {
+  font-size: 22px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.slot-values {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+  text-align: center;
+}
+
+.slot-values p {
+  margin: 4px 0;
+}
+
+/* palline di natale */
+
+/* Contenitore generale */
+.gioco-albero-container {
+  width: 100%;
+  height: 100vh;
+  background: #d8efff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Albero di Natale (pino) */
+.albero-natale {
+  width: 260px;
+  height: 360px;
+  background: #1f7a1f;
+  clip-path: polygon(50% 0%, 75% 25%, 60% 25%, 85% 50%, 
+                     70% 50%, 95% 75%, 70% 75%, 100% 100%, 
+                     0% 100%, 30% 75%, 5% 75%, 30% 50%, 
+                     15% 50%, 40% 25%, 25% 25%);
+  position: relative;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+
+/* Palline */
+.pallina {
+  width: 45px;
+  height: 45px;
+  font-size: 32px;
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.1s;
+}
+
+.pallina:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.pallina-fissata {
+  pointer-events: none;
+}
+
+/* Coriandoli */
+.coriandolo {
+  width: 8px;
+  height: 12px;
+  position: absolute;
+  top: -20px;
+  background: hsl(calc(360 * var(--i)), 80%, 60%);
+  animation: caduta 3s linear infinite;
+}
+
+@keyframes caduta {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(120vh) rotate(360deg); }
+}
+
+/* Messaggio finale */
+.messaggio-finale {
+  position: absolute;
+  bottom: 40px;
+  font-size: 40px;
+  font-weight: bold;
+  color: red;
+  text-shadow: 0 0 10px white;
+}
+
+.pallina {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 10px;
+}
+
+.pallina-emoji {
+  font-size: 70px;
+  margin: 10px;
+  display: inline-block;
+}
+
+* CONNECT THE DOTS */
+.connect-dots-wrapper {
+  position: relative;
+  max-width: 800px;       /* puoi adattarlo */
+  margin: 30px auto;
+}
+
+.connect-dots-wrapper canvas {
+  width: 100%;
+  height: auto;
+  background: #fff;       /* sfondo bianco visibile */
+  display: block;
+  border: 2px solid #333;
+  border-radius: 10px;
+  cursor: crosshair;
+}
+
+input {
+  font-family: Palatino, serif;
+  font-weight: bold;
+}
+
+.chat-guess-wrapper {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.chat-image {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+}
+
+.answers-box {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.answer-btn {
+  padding: 15px;
+  border-radius: 12px;
+  background: white;
+  border: 2px solid #aaa;
+  font-family: Palatino;
+  cursor: pointer;
+  transition: .25s;
+}
+
+.answer-btn:hover {
+  transform: scale(1.03);
+  background: #f7f7f7;
+}
+
+.answer-btn.correct {
+  border-color: #2ecc71;
+  background: #c8f7d4;
+}
+
+.answer-btn.wrong {
+  border-color: #e74c3c;
+  background: #f7c4c4;
+}
+
+/* FUOCHI D’ARTIFICIO */
+.firework {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: explode 1.2s ease-out forwards;
+  z-index: 5000;
+  background: radial-gradient(circle, white, transparent);
+}
+
+@keyframes explode {
+  0% {
+      transform: scale(0);
+      opacity: 1;
+  }
+  70% {
+      transform: scale(20);
+      opacity: 0.9;
+      background: radial-gradient(circle, 
+          hsl(calc(360 * var(--i)), 80%, 70%), 
+          transparent);
+  }
+  100% {
+      transform: scale(30);
+      opacity: 0;
+  }
+}
