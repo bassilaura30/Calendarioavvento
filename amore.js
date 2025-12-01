@@ -562,14 +562,11 @@ const contents = [
 
 // -------------------- DATE E GIORNO ATTUALE --------------------
 const startDate = new Date(2025, 11, 1); // inizio calendario
-const christmasDate = new Date(2025, 11, 25); // Natale
 const today = new Date();
-let diffDays = Math.floor((today-startDate)/(1000*60*60*24));
-diffDays = Math.max(0, Math.min(contents.length-1, diffDays));
+const diffDays = Math.max(0, Math.min(contents.length - 1, Math.floor((today - startDate) / (1000 * 60 * 60 * 24))));
+const currentDay = diffDays;
 
 const contentEl = document.getElementById("content");
-const debugMode = true;
-let currentDay = diffDays;
 
 // ---------------FUOCHI D'ARTIFICIO ------------------
 function createFireworksOverlay() {
@@ -2014,88 +2011,91 @@ window.onload=openDoors;
 // -------------------- NEVE --------------------
 const canvas = document.getElementById("snowCanvas");
 const ctx = canvas.getContext("2d");
-let width=canvas.width=window.innerWidth;
-let height=canvas.height=window.innerHeight;
-const snowflakes=[], maxFlakes=150;
-for(let i=0;i<maxFlakes;i++){snowflakes.push({x:Math.random()*width,y:Math.random()*-height,radius:Math.random()*4+1,speed:Math.random()*2+1,finished:false});}
-let allowSnow=false;
-function startSnow(){ allowSnow=true; drawSnow(); }
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+
+const snowflakes = [], maxFlakes = 150;
+for (let i = 0; i < maxFlakes; i++) {
+    snowflakes.push({
+        x: Math.random() * width,
+        y: Math.random() * -height,
+        radius: Math.random() * 4 + 1,
+        speed: Math.random() * 2 + 1,
+        finished: false
+    });
+}
+let allowSnow = false;
+function startSnow() { allowSnow = true; drawSnow(); }
 
 // -------------------- FUNZIONE PER MOSTRARE IL GIORNO --------------------
-function showDay(dayIdx){
-  if(dayIdx<0||dayIdx>=contents.length) return;
-  currentDay=dayIdx;
+function showDay(dayIdx) {
+  if (dayIdx < 0 || dayIdx >= contents.length) return;
 
-  // rimuovo titolo vecchio
-  const oldTitle=document.querySelector("#content ~ h3");
-  if(oldTitle) oldTitle.remove();
+  contentEl.innerHTML = "";
+  snowflakes.forEach(f => { f.y = Math.random() * -height; f.finished = false; });
 
-  // pulisco contenuto
-  contentEl.innerHTML="";
+  let typewriterStarted = false;
 
-  // creo titolo nuovo
-  const dayTitle=document.createElement("h3");
-  dayTitle.textContent=contents[currentDay].day;
-  dayTitle.style.opacity=0;
-  dayTitle.style.transition="opacity 0.5s";
-  dayTitle.style.textAlign="left";
-  dayTitle.style.color="rgb(128,0,0)";
-  dayTitle.style.fontFamily="Palatino";
-  dayTitle.style.fontSize="450%";
-  dayTitle.style.marginRight="2%";
-  dayTitle.style.marginLeft="40%";
-  dayTitle.style.marginTop ="45";
-  contentEl.parentElement.insertBefore(dayTitle,contentEl);
+  // --- CREO TITOLO "MANCANO ... GIORNI A NATALE" ---
+  const dayTitle = document.createElement("h3");
+  dayTitle.textContent = contents[dayIdx].day;
+  dayTitle.style.opacity = 0;
+  dayTitle.style.transition = "opacity 0.5s";
+  dayTitle.style.textAlign = "Right";
+  dayTitle.style.marginLeft ="40%";
+  dayTitle.style.marginTop ="10%";
+  dayTitle.style.marginRight ="10%";
+  dayTitle.style.color = "rgb(128,0,0)";
+  dayTitle.style.fontFamily = "Palatino";
+  dayTitle.style.fontSize = "450%";
+  contentEl.parentElement.insertBefore(dayTitle, contentEl);
 
-  // reset neve
-  snowflakes.forEach(f=>{f.y=Math.random()*-height; f.finished=false;});
+  function updateSnowAndTitle() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "white"; 
+      ctx.beginPath();
+      snowflakes.forEach(flake => {
+          ctx.moveTo(flake.x, flake.y);
+          ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+          flake.y += flake.speed;
+          if (flake.y > height) flake.finished = true;
+      });
+      ctx.fill();
 
-  let typewriterStarted=false;
+      // --- mostra titolo in base a quanta neve è caduta ---
+      const finishedCount = snowflakes.filter(f => f.finished).length;
+      const progress = Math.min(finishedCount / maxFlakes, 1);
+      dayTitle.style.opacity = progress;
 
-  function updateSnowAndTitle(){
-    ctx.clearRect(0,0,width,height);
-    ctx.fillStyle="white"; ctx.beginPath();
-    snowflakes.forEach(flake=>{
-      ctx.moveTo(flake.x,flake.y); ctx.arc(flake.x,flake.y,flake.radius,0,Math.PI*2);
-      flake.y+=flake.speed;
-      if(flake.y>height) flake.finished=true;
-    });
-    ctx.fill();
+      if (progress === 1 && !typewriterStarted) {
+          typewriterStarted = true;
 
-    const finishedCount=snowflakes.filter(f=>f.finished).length;
-    const progress=Math.min(finishedCount/maxFlakes,1);
-    dayTitle.style.opacity=progress;
+          // Step 0: scompare titolo
+          dayTitle.style.opacity = 0;
+          setTimeout(() => { dayTitle.remove(); }, 500);
 
-    if(progress===1 && !typewriterStarted){
-      typewriterStarted = true;
-    
-      // Step 0: rimuovo il titolo vecchio
-      dayTitle.style.opacity = 0;
-      setTimeout(() => { dayTitle.remove(); }, 500);
-    
-      // Step 1: creo messaggio del giorno
-      const dayMsg = document.createElement("p");
-      dayMsg.style.fontSize = "22px";
-      dayMsg.style.fontWeight = "bold";
-      dayMsg.style.color = "#000000";
-      dayMsg.style.textAlign = "center";
-      dayMsg.style.marginTop = "30px";
-      contentEl.appendChild(dayMsg);
-    
-      // testo personalizzato per il giorno
-      let msgText = contents[currentDay].dayMessage;
-      let i = 0;
-    
-      function typeWriterMsg() {
-        if (i < msgText.length) {
-          dayMsg.textContent += msgText.charAt(i);
-          i++;
-          setTimeout(typeWriterMsg, 50); // velocità typewriter
-        } else {
-          // Step 2: rimane 5 secondi
-          setTimeout(() => {
-            dayMsg.remove();
-    
+          // Step 1: crea messaggio del giorno (typewriter)
+          const dayMsg = document.createElement("p");
+          dayMsg.style.fontSize = "22px";
+          dayMsg.style.fontWeight = "bold";
+          dayMsg.style.color = "#000000";
+          dayMsg.style.textAlign = "center";
+          dayMsg.style.marginTop = "30px";
+          contentEl.appendChild(dayMsg);
+
+          let msgText = contents[dayIdx].dayMessage || "";
+          let i = 0;
+
+          function typeWriterMsg() {
+              if (i < msgText.length) {
+                  dayMsg.textContent += msgText.charAt(i);
+                  i++;
+                  setTimeout(typeWriterMsg, 50);
+              } else {
+                  // Step 2: rimane 5 secondi
+                  setTimeout(() => {
+                      dayMsg.remove();
+
             // Step 3: inserisco i contenuti/giochi del giorno
             contents[currentDay].items.forEach(item => {
     
@@ -2161,15 +2161,12 @@ function showDay(dayIdx){
                 });
                 contentEl.appendChild(quizWrapper);
               }
-    
             });
-    
             contentEl.scrollIntoView({behavior:"smooth"});
     
           }, 5000); // fine 5 secondi
         }
       }
-    
       typeWriterMsg();
     }
 
@@ -2179,25 +2176,11 @@ function showDay(dayIdx){
   updateSnowAndTitle();
 }
 
-// -------------------- PULSANTI NAVIGAZIONE (DEBUG MODE) --------------------
-if(debugMode){
-  const nav=document.createElement("div"); nav.style.margin="12px 2%";
-  const prev=document.createElement("button"); prev.textContent="⬅ Giorno precedente";
-  const next=document.createElement("button"); next.textContent="Giorno successivo ➡";
-  const showAll=document.createElement("button"); showAll.textContent="Mostra tutto";
-
-  nav.appendChild(prev); nav.appendChild(next); nav.appendChild(showAll);
-  document.body.insertBefore(nav, contentEl);
-
-  prev.addEventListener("click",()=>{if(currentDay>0) showDay(currentDay-1);});
-  next.addEventListener("click",()=>{if(currentDay<contents.length-1) showDay(currentDay+1);});
-  showAll.addEventListener("click",()=>{contentEl.innerHTML=""; contents.forEach((c,i)=>{c.items.forEach(item=>{const wrapper=document.createElement("div"); wrapper.textContent=item.type==="text"?item.data:item.type; contentEl.appendChild(wrapper);});});});
-
-  // mostra giorno iniziale
-  showDay(currentDay);
-} else {
-  showDay(diffDays);
-}
+// -------------------- CARICA IL GIORNO CORRENTE AUTOMATICAMENTE --------------------
+showDay(currentDay);
 
 // -------------------- RESIZE CANVAS --------------------
-window.addEventListener("resize",()=>{width=canvas.width=window.innerWidth; height=canvas.height=window.innerHeight; Lwidth=lightsCanvas.width=window.innerWidth; Lheight=lightsCanvas.height=window.innerHeight;});
+window.addEventListener("resize", () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+});
